@@ -12,8 +12,24 @@ from pathlib import Path
 try:
     import yaml
 except ImportError:
-    print("Error: PyYAML is required.  Install it with:  pip install pyyaml")
+    print(f"{RED}Error: PyYAML is required.  Install it with:  pip install pyyaml{RST}")
     sys.exit(1)
+
+
+# ---------------------------------------------------------------------------
+# Colors (no-op when stdout is not a TTY, e.g. when piped)
+# ---------------------------------------------------------------------------
+
+def _c(code: str) -> str:
+    return f"\033[{code}m" if sys.stdout.isatty() else ""
+
+RST  = _c("0")
+BOLD = _c("1")
+DIM  = _c("2")
+RED  = _c("31")
+GRN  = _c("32")
+YLW  = _c("33")
+CYN  = _c("36")
 
 
 REPO_DIR = Path(__file__).parent.resolve()
@@ -33,8 +49,18 @@ ZOO_CODE_MODES = VSCODE_STORAGE / "zoocodeorganization.zoo-code" / "settings" / 
 # Helpers
 # ---------------------------------------------------------------------------
 
+def _status(tag: str) -> str:
+    """Coloured status badge, e.g. '[installed]'."""
+    padded = f"[{tag:<9}]"
+    if tag == "installed":
+        return f"{GRN}{padded}{RST}"
+    if tag == "updated":
+        return f"{YLW}{padded}{RST}"
+    return f"{DIM}{padded}{RST}"
+
+
 def ask(prompt: str, default: str = "y") -> bool:
-    hint = "[Y/n]" if default == "y" else "[y/N]"
+    hint = f"{DIM}[Y/n]{RST}" if default == "y" else f"{DIM}[y/N]{RST}"
     try:
         answer = input(f"{prompt} {hint}: ").strip().lower()
     except (EOFError, KeyboardInterrupt):
@@ -139,14 +165,14 @@ def merge_modes(modes: list, modes_path: Path, label: str, home: str) -> bool:
         if slug in slug_to_index:
             if ask(f"  [{label}] Mode '{slug}' already exists. Update it?", default="n"):
                 target["customModes"][slug_to_index[slug]] = mode
-                print(f"  [updated  ] {display}")
+                print(f"  {_status('updated')} {display}")
                 changed = True
             else:
-                print(f"  [skipped  ] {display}")
+                print(f"  {_status('skipped')} {display}")
         else:
             target["customModes"].append(mode)
             slug_to_index[slug] = len(target["customModes"]) - 1
-            print(f"  [installed] {display}")
+            print(f"  {_status('installed')} {display}")
             changed = True
 
     if changed:
@@ -161,7 +187,7 @@ def merge_modes(modes: list, modes_path: Path, label: str, home: str) -> bool:
                 width=120,
             )
         patch_paths(modes_path, home)
-        print(f"  Saved → {modes_path}")
+        print(f"  {DIM}Saved → {modes_path}{RST}")
 
     return changed
 
@@ -171,23 +197,24 @@ def merge_modes(modes: list, modes_path: Path, label: str, home: str) -> bool:
 # ---------------------------------------------------------------------------
 
 def print_summary(skills, commands, modes):
-    print(f"\n{'─'*55}")
-    print("What will be installed")
-    print(f"{'─'*55}")
+    rule = f"{DIM}{'─'*55}{RST}"
+    print(f"\n{rule}")
+    print(f"{BOLD}What will be installed{RST}")
+    print(rule)
 
-    print(f"\nSkills  (copied → {ROO_SKILLS}/):")
+    print(f"\n{BOLD}Skills{RST}  {DIM}(copied → {ROO_SKILLS}/){RST}:")
     for s in skills:
-        print(f"  • {s.name}/")
+        print(f"  {CYN}•{RST} {s.name}/")
 
-    print(f"\nCommands  (copied → {ROO_COMMANDS}/):")
+    print(f"\n{BOLD}Commands{RST}  {DIM}(copied → {ROO_COMMANDS}/){RST}:")
     for c in commands:
-        print(f"  • {c.name}")
+        print(f"  {CYN}•{RST} {c.name}")
 
-    print(f"\nModes  (merged into {ZOO_CODE_MODES}):")
+    print(f"\n{BOLD}Modes{RST}  {DIM}(merged into {ZOO_CODE_MODES}){RST}:")
     for m in modes:
-        print(f"  • {m['slug']}  —  {m.get('name', '')}")
+        print(f"  {CYN}•{RST} {m['slug']}  —  {m.get('name', '')}")
 
-    print(f"{'─'*55}\n")
+    print(f"{rule}\n")
 
 
 # ---------------------------------------------------------------------------
@@ -195,14 +222,14 @@ def print_summary(skills, commands, modes):
 # ---------------------------------------------------------------------------
 
 def main():
-    print("=== DeepResearch Skill Installer ===\n")
+    print(f"{BOLD}{CYN}=== DeepResearch Skill Installer ==={RST}\n")
 
     skills = collect_skills()
     commands = collect_commands()
     modes = collect_source_modes()
 
     if not skills and not commands and not modes:
-        print("Nothing found to install. Are you running from the right directory?")
+        print(f"{RED}Nothing found to install. Are you running from the right directory?{RST}")
         sys.exit(1)
 
     home = str(Path.home())
@@ -210,7 +237,7 @@ def main():
     # --- Dry-run summary + confirmation ---
     print_summary(skills, commands, modes)
     if not ask("Proceed with installation?", default="y"):
-        print("Aborted.")
+        print(f"{YLW}Aborted.{RST}")
         sys.exit(0)
 
     print()
@@ -218,28 +245,28 @@ def main():
     # 1. Ensure target directories exist
     ROO_SKILLS.mkdir(parents=True, exist_ok=True)
     ROO_COMMANDS.mkdir(parents=True, exist_ok=True)
-    print(f"Directories ready: {ROO_SKILLS}")
-    print(f"                   {ROO_COMMANDS}\n")
+    print(f"{DIM}Directories ready: {ROO_SKILLS}")
+    print(f"                   {ROO_COMMANDS}{RST}\n")
 
     # 2. Skills
-    print("--- Skills ---")
+    print(f"{BOLD}Skills{RST}")
     for skill in skills:
         dst = ROO_SKILLS / skill.name
         result = install_item(skill, dst, f"Skill '{skill.name}/'", home)
-        print(f"  [{result:<9}] {skill.name}/")
+        print(f"  {_status(result)} {skill.name}/")
 
     # 3. Commands
-    print("\n--- Commands ---")
+    print(f"\n{BOLD}Commands{RST}")
     for cmd in commands:
         dst = ROO_COMMANDS / cmd.name
         result = install_item(cmd, dst, f"Command '{cmd.name}'", home)
-        print(f"  [{result:<9}] {cmd.name}")
+        print(f"  {_status(result)} {cmd.name}")
 
     # 4. Modes
-    print("\n--- Modes ---")
+    print(f"\n{BOLD}Modes{RST}")
     merge_modes(modes, ZOO_CODE_MODES, "Zoo Code", home)
 
-    print("\n=== Installation complete ===")
+    print(f"\n{BOLD}{GRN}=== Installation complete ==={RST}")
 
 
 if __name__ == "__main__":
