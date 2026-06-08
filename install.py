@@ -45,19 +45,6 @@ def ask(prompt: str, default: str = "y") -> bool:
     return answer in ("y", "yes")
 
 
-def ask_choice(prompt: str, options: list) -> str:
-    for i, opt in enumerate(options, 1):
-        print(f"  {i}. {opt}")
-    while True:
-        try:
-            answer = input(f"{prompt} (1-{len(options)}): ").strip()
-        except (EOFError, KeyboardInterrupt):
-            print()
-            sys.exit(0)
-        if answer.isdigit() and 1 <= int(answer) <= len(options):
-            return options[int(answer) - 1]
-        print(f"  Please enter a number between 1 and {len(options)}.")
-
 
 # ---------------------------------------------------------------------------
 # Data collection
@@ -104,9 +91,24 @@ def remove_existing(dst: Path):
         shutil.rmtree(dst)
 
 
-def install_item(src: Path, dst: Path, use_symlinks: bool, label: str) -> str:
+def patch_paths(dst: Path, home: str) -> None:
+    """Replace ~/.roo/ with the real home path in all copied text files."""
+    files = [dst] if dst.is_file() else dst.rglob("*")
+    for f in files:
+        if not f.is_file():
+            continue
+        try:
+            text = f.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        patched = text.replace("~/.roo/", f"{home}/.roo/")
+        if patched != text:
+            f.write_text(patched, encoding="utf-8")
+
+
+def install_item(src: Path, dst: Path, label: str, home: str) -> str:
     """
-    Copy or symlink src → dst.
+    Copy src → dst.
     Returns 'installed', 'updated', or 'skipped'.
     Asks the user when dst already exists.
     """
@@ -116,18 +118,16 @@ def install_item(src: Path, dst: Path, use_symlinks: bool, label: str) -> str:
             return "skipped"
         remove_existing(dst)
 
-    if use_symlinks:
-        dst.symlink_to(src.resolve())
+    if src.is_dir():
+        shutil.copytree(src, dst)
     else:
-        if src.is_dir():
-            shutil.copytree(src, dst)
-        else:
-            shutil.copy2(src, dst)
+        shutil.copy2(src, dst)
+    patch_paths(dst, home)
 
     return "updated" if already_exists else "installed"
 
 
-def merge_modes(modes: list, modes_path: Path, label: str) -> bool:
+def merge_modes(modes: list, modes_path: Path, label: str, home: str) -> bool:
     """Merge source modes into a target custom_modes.yaml. Returns True if changed."""
     target = load_modes_file(modes_path)
     slug_to_index = {m["slug"]: i for i, m in enumerate(target["customModes"])}
@@ -160,6 +160,7 @@ def merge_modes(modes: list, modes_path: Path, label: str) -> bool:
                 default_flow_style=False,
                 width=120,
             )
+        patch_paths(modes_path, home)
         print(f"  Saved → {modes_path}")
 
     return changed
@@ -169,17 +170,16 @@ def merge_modes(modes: list, modes_path: Path, label: str) -> bool:
 # Summary
 # ---------------------------------------------------------------------------
 
-def print_summary(skills, commands, modes, use_symlinks):
-    method = "symlinked" if use_symlinks else "copied"
+def print_summary(skills, commands, modes):
     print(f"\n{'─'*55}")
     print("What will be installed")
     print(f"{'─'*55}")
 
-    print(f"\nSkills  ({method} → {ROO_SKILLS}/):")
+    print(f"\nSkills  (copied → {ROO_SKILLS}/):")
     for s in skills:
         print(f"  • {s.name}/")
 
-    print(f"\nCommands  ({method} → {ROO_COMMANDS}/):")
+    print(f"\nCommands  (copied → {ROO_COMMANDS}/):")
     for c in commands:
         print(f"  • {c.name}")
 
@@ -205,19 +205,10 @@ def main():
         print("Nothing found to install. Are you running from the right directory?")
         sys.exit(1)
 
-    # --- Choose install method for skills/commands ---
-    print("How do you want to install skills and commands?\n")
-    choice = ask_choice(
-        "Choose",
-        [
-            "Symlinks  (easier updates; this directory must stay in place)",
-            "Copy files  (self-contained; this directory can be removed afterward)",
-        ],
-    )
-    use_symlinks = choice.startswith("Symlinks")
+    home = str(Path.home())
 
     # --- Dry-run summary + confirmation ---
-    print_summary(skills, commands, modes, use_symlinks)
+    print_summary(skills, commands, modes)
     if not ask("Proceed with installation?", default="y"):
         print("Aborted.")
         sys.exit(0)
@@ -234,19 +225,19 @@ def main():
     print("--- Skills ---")
     for skill in skills:
         dst = ROO_SKILLS / skill.name
-        result = install_item(skill, dst, use_symlinks, f"Skill '{skill.name}/'")
+        result = install_item(skill, dst, f"Skill '{skill.name}/'", home)
         print(f"  [{result:<9}] {skill.name}/")
 
     # 3. Commands
     print("\n--- Commands ---")
     for cmd in commands:
         dst = ROO_COMMANDS / cmd.name
-        result = install_item(cmd, dst, use_symlinks, f"Command '{cmd.name}'")
+        result = install_item(cmd, dst, f"Command '{cmd.name}'", home)
         print(f"  [{result:<9}] {cmd.name}")
 
     # 4. Modes
     print("\n--- Modes ---")
-    merge_modes(modes, ZOO_CODE_MODES, "Zoo Code")
+    merge_modes(modes, ZOO_CODE_MODES, "Zoo Code", home)
 
     print("\n=== Installation complete ===")
 
