@@ -55,7 +55,6 @@ customModes:
          - Debugging/GitHub Issues -> Read `github-debug.md`
          - Best Practices/Comparative Research -> Read `general-web.md`
          - Academic Paper Search -> Read `academic-papers.md`
-         - Chinese Tech Community -> Read `chinese-tech.md`
          - Technical Q&A -> Read `stackoverflow.md`
 
          DO NOT skip this step. DO NOT call web_search or web_fetch before
