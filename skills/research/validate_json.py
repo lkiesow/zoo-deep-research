@@ -18,16 +18,12 @@ from pathlib import Path
 
 import yaml
 
-CATEGORY_MAPPING = {
-    "basic_info": ["basic_info", "Basic Info"],
-    "technical_features": ["technical_features", "technical_characteristics", "Technical Features"],
-    "performance_metrics": ["performance_metrics", "performance", "Performance Metrics"],
-    "milestone_significance": ["milestone_significance", "milestones", "Milestone Significance"],
-    "business_info": ["business_info", "commercial_info", "Business Info"],
-    "competition_ecosystem": ["competition_ecosystem", "competition", "Competition Ecosystem"],
-    "history": ["history", "History"],
-    "market_positioning": ["market_positioning", "market", "Market Positioning"],
-}
+def _load_category_mapping() -> dict:
+    _map_path = Path(__file__).parent / "category_mapping.yaml"
+    with _map_path.open(encoding="utf-8") as _f:
+        return yaml.safe_load(_f)
+
+CATEGORY_MAPPING = _load_category_mapping()
 
 _SKIP_KEYS = {"_source_file", "uncertain"}
 

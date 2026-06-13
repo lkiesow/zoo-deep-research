@@ -1,0 +1,42 @@
+# Category mapping: canonical key -> list of accepted aliases (JSON keys and display names).
+# Used by validate_json.py at runtime and by the research-report skill when generating
+# report scripts. Edit here to add or rename categories — no other files need updating.
+
+basic_info:
+  - basic_info
+  - Basic Info
+
+technical_features:
+  - technical_features
+  - technical_characteristics
+  - Technical Features
+
+performance_metrics:
+  - performance_metrics
+  - performance
+  - Performance Metrics
+
+milestone_significance:
+  - milestone_significance
+  - milestones
+  - Milestone Significance
+
+business_info:
+  - business_info
+  - commercial_info
+  - Business Info
+
+competition_ecosystem:
+  - competition_ecosystem
+  - competition
+  - Competition Ecosystem
+  - Competition & Ecosystem
+
+history:
+  - history
+  - History
+
+market_positioning:
+  - market_positioning
+  - market
+  - Market Positioning

@@ -51,19 +51,10 @@ Support two JSON structures:
 Field lookup order: Top level -> category mapping key -> Traverse all nested dicts
 
 **2. Category Mapping**
-fields.yaml category names and JSON keys may differ. Must establish bidirectional mapping:
-```python
-CATEGORY_MAPPING = {
-    "Basic Info": ["basic_info", "Basic Info"],
-    "Technical Features": ["technical_features", "technical_characteristics", "Technical Features"],
-    "Performance Metrics": ["performance_metrics", "performance", "Performance Metrics"],
-    "Milestone Significance": ["milestone_significance", "milestones", "Milestone Significance"],
-    "Business Info": ["business_info", "commercial_info", "Business Info"],
-    "Competition & Ecosystem": ["competition_ecosystem", "competition", "Competition & Ecosystem"],
-    "History": ["history", "History"],
-    "Market Positioning": ["market_positioning", "market", "Market Positioning"],
-}
-```
+fields.yaml category names and JSON keys may differ. Read
+`~/.roo/skills/research/category_mapping.yaml` to get the category mapping.
+Each top-level key is a canonical category name; its value is the list of accepted
+aliases used as JSON keys and display names.
 
 **3. Complex Value Formatting**
 - list of dicts (e.g., key_events, funding_history): Format each dict as one line, separate kv with ` | `
