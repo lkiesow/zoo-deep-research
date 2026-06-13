@@ -12,7 +12,7 @@ from pathlib import Path
 try:
     import yaml
 except ImportError:
-    print(f"{RED}Error: PyYAML is required.  Install it with:  pip install pyyaml{RST}")
+    print("Error: PyYAML is required.  Install it with:  pip install pyyaml")
     sys.exit(1)
 
 
