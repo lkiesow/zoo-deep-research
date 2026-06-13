@@ -11,6 +11,7 @@ Usage:
     python validate_json.py [--fields fields.yaml] [--json a.json b.json | --dir results/] [--quiet]
 """
 
+import argparse
 import json
 import sys
 from collections import defaultdict
@@ -190,7 +191,6 @@ def main():
     per-file reports followed by an overall summary and exits with code 1 if
     any file fails validation.
     """
-    import argparse
     parser = argparse.ArgumentParser(description="Validate whether JSON files cover all fields defined in fields.yaml")
     parser.add_argument("--fields", "-f", type=str, help="Path to fields.yaml", default="fields.yaml")
     parser.add_argument("--json", "-j", type=str, nargs="*", help="JSON file paths to validate")
