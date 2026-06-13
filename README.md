@@ -64,7 +64,7 @@ mkdir -p ~/.roo/skills ~/.roo/commands
 cp -r skills/* ~/.roo/skills/
 
 # Install slash commands
-cp commands/*.md .roo/commands/
+cp commands/*.md ~/.roo/commands/
 
 ```
 
