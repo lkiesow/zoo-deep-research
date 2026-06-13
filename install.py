@@ -91,6 +91,8 @@ def collect_commands() -> list:
 
 
 def collect_source_modes() -> list:
+    if not MODES_SRC.exists():
+        return []
     with open(MODES_SRC) as f:
         data = yaml.safe_load(f)
     return data.get("customModes", [])
