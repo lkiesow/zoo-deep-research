@@ -94,9 +94,9 @@ customModes:
       - Self-check: diverse sources? gaps? info current? actionable next steps?
 
       **Tool Usage:**
-      Use `use_mcp_tool` with server `search-and-fetch` for all web access:
-      - Tool `web_search` for search queries
-      - Tool `web_fetch` for fetching specific URLs
+      Use available web search and fetch MCP tools for all web access:
+      - Use a web search tool for search queries
+      - Use a web fetch tool for fetching specific URLs
     whenToUse: >-
       Use this mode when researching a single item or a small batch of items
       as part of a larger research project. Typically spawned as a subtask
