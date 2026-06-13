@@ -103,10 +103,20 @@ supplement the list with the latest items.
 
 ```
 /research-add-items
+```
+
+Add more **items** (the subjects being researched — e.g. individual models,
+papers, or products) to an existing outline. The skill asks what items to add
+and optionally runs a web search to discover additional ones.
+
+```
 /research-add-fields
 ```
 
-Add more research items or field definitions to an existing outline.
+Add more **fields** (the data points collected for every item — e.g.
+`release_date`, `license`, `benchmark_score`) to an existing outline. The
+skill asks for new fields, lets you choose their category and detail level,
+and appends them to `fields.yaml`.
 
 ### Phase 2: Deep Research
 
